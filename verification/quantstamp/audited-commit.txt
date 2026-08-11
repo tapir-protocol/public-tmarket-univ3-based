@@ -1,0 +1,6 @@
+tree 9393ee01900f6c9cd4acdb76f973139d320b478d
+parent 350e6e19309a5ca675c299b9c795fbef1e9282db
+author Juuso Roinevirta <jroinevirta@gmail.com> 1764670164 +0200
+committer Juuso Roinevirta <jroinevirta@gmail.com> 1764670164 +0200
+
+Fix: dynamic fee max 1%

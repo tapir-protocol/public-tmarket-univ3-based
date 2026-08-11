@@ -1,0 +1,53 @@
+diff --git a/contracts/UniswapV3Pool.sol b/contracts/UniswapV3Pool.sol
+index dfb34ac..61e964f 100644
+--- a/contracts/UniswapV3Pool.sol
++++ b/contracts/UniswapV3Pool.sol
+@@ -26,6 +26,23 @@ import './interfaces/IERC20Minimal.sol';
+ import './interfaces/callback/IUniswapV3MintCallback.sol';
+ import './interfaces/callback/IUniswapV3SwapCallback.sol';
+ 
++/// @title Tapir AMM UniswapV3Pool
++/// @notice A modified fork of Uniswap V3 Pool with dynamic fees, pausing capability, and removed flash loans.
++/// @dev This modifies UniV3 as follows:
++///
++/// ### Added Features
++/// - **Dynamic Fees**: The swap fee can be modified by the tapirAdmin via setFee()
++/// - **Pausing**: Swaps can be paused by the tapirAdmin via setPaused()
++/// - **tapirAdmin**: Privileged address set at pool creation for fee and pause control
++///
++/// ### Removed Features
++/// **IMPORTANT - Flash Loan Removal**:
++/// The flash() function has been removed from this implementation to reduce contract bytecode
++/// size below the 24KB deployment limit. This is a deliberate design decision with the following implications:
++/// - Arbitrage bots that rely on flash loans for capital-free arbitrage will not work with this pool
++/// - Liquidation protocols using flash loans for atomic liquidations must use alternative funding
++/// - Protocols expecting the standard IUniswapV3Pool interface with flash() will encounter missing function errors
++/// - Advanced DeFi strategies requiring atomic flash loan operations are not supported
+ contract UniswapV3Pool is IUniswapV3Pool, NoDelegateCall {
+     using LowGasSafeMath for uint256;
+     using LowGasSafeMath for int256;
+@@ -44,6 +61,7 @@ contract UniswapV3Pool is IUniswapV3Pool, NoDelegateCall {
+     /// @inheritdoc IUniswapV3PoolImmutables
+     address public immutable override token1;
+     /// @inheritdoc IUniswapV3PoolImmutables
++    /// @dev Pool identifier fee - use for pool lookup and tick spacing. For actual swap costs, use dynamicFee.
+     uint24 public immutable override fee;
+ 
+     /// @inheritdoc IUniswapV3PoolImmutables
+@@ -101,6 +119,7 @@ contract UniswapV3Pool is IUniswapV3Pool, NoDelegateCall {
+     Oracle.Observation[65535] public override observations;
+ 
+     /// @inheritdoc IUniswapV3PoolState
++    /// @dev Actual swap fee - use for swap cost calculations. For pool identification, use fee (immutable).
+     uint24 public override dynamicFee;
+ 
+     /// @inheritdoc IUniswapV3PoolState
+@@ -817,6 +836,8 @@ contract UniswapV3Pool is IUniswapV3Pool, NoDelegateCall {
+         slot0.unlocked = true;
+     }
+ 
++    // IMPORTANT: flash() function removed
++
+     /// @inheritdoc IUniswapV3PoolOwnerActions
+     function setFeeProtocol(uint8 feeProtocol0, uint8 feeProtocol1) external override lock onlyFactoryOwner {
+         require(

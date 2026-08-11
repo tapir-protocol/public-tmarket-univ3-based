@@ -1,0 +1,23 @@
+node_modules
+.env
+.env.*
+!.env.example
+.DS_Store
+
+# Editor settings
+.vscode/
+
+# Hardhat output
+artifacts/
+cache/
+typechain/
+typechain-types/
+dist/
+
+# Test and analysis output
+coverage/
+coverage.json
+crytic-export/
+gasReporterOutput.json
+yarn-error.log
+npm-debug.log*
